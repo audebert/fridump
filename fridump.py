@@ -30,7 +30,9 @@ def MENU():
     parser.add_argument('process', help='the process that you will be injecting to')
     parser.add_argument('-o', '--out', type=str, help='provide full output directory path. (def: \'dump\')',
                         metavar="dir")
-    parser.add_argument('-u', '--usb', action='store_true', help='device connected over usb')
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('-u', '--usb', action='store_true', help='device connected over usb')
+    group.add_argument('-R', '--remote', action='store_true', help='remote device connected over TCP - localhost:27042')
     parser.add_argument('-v', '--verbose', action='store_true', help='verbose')
     parser.add_argument('-r','--read-only',action='store_true', help="dump read-only parts of memory. More data, more errors")
     parser.add_argument('-s', '--strings', action='store_true',
@@ -48,6 +50,7 @@ arguments = MENU()
 APP_NAME = arguments.process
 DIRECTORY = ""
 USB = arguments.usb
+REMOTE = arguments.remote
 DEBUG_LEVEL = logging.INFO
 STRINGS = arguments.strings
 MAX_SIZE = 20971520
@@ -66,6 +69,8 @@ session = None
 try:
     if USB:
         session = frida.get_usb_device().attach(APP_NAME)
+    elif REMOTE:
+        session = frida.get_remote_device().attach(APP_NAME)
     else:
         session = frida.attach(APP_NAME)
 except:
